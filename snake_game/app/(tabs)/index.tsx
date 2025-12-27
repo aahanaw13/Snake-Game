@@ -75,3 +75,37 @@ const getInitialState=():GameState=>{
     isPaused:false, isStarted:false,
   };
 }
+const SnakeGame: React.FC=()=>{
+  const[GameState, setGameState]=useState<GameState>(getInitialState);
+  const gameLoopRef=useRef<NodeJS.Timeout|null>(null);
+  const lastSwipeRef=useRef<Position>({x:0, y:0});
+  //Move snake 
+  const moveSnake=useCallback(():void=>{
+    setGameState((prevState:GameState):GameState=>{
+      if(prevState.gameOver || prevState.isPaused || !prevState.isStarted){
+        return prevState;
+      }
+      const {snake, food, nextDirection, score, highScore}=prevState;
+      const head: Position= snake[0];
+      const newHead: Position={
+        x:head.x+nextDirection.x, 
+        y:head.y+nextDirection.y,
+      };
+      //check wall collisions
+      if(
+        newHead.x<0 ||
+        newHead.x>=GRID_SIZE ||
+        newHead.y<0 ||
+        newHead.y>=GRID_SIZE 
+      ){
+        return {...prevState, gameOver: true, highScore: Math.max(score, highScore)};
+      }
+      //check self collision 
+      if (snake.some(
+        (segment)=>segment.x === newHead.x && segment.y === newHead.y
+      )){
+        return {...prevState, gameOver: true, highScore: Math.max(score,highScore)};
+      }
+    })
+  })
+}
